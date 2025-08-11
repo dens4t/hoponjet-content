@@ -1,3 +1,4 @@
+const $ = jQuery;
 function fetchData(departure, destination, callback) {
         $.get(`${hopon.url}/airport.php?departure=${departure}&destination=${destination}`, callback);
     }
