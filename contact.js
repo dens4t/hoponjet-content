@@ -1,148 +1,126 @@
 function fetchData(departure, destination, callback) {
-    $.get(`${hopon.url}/airport.php?departure=${departure}&destination=${destination}`, callback);
-}
-function makeid(length) {
-    let result = '';
-    const characters = 'abcdefghijklmnopqrstuvwxyz';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        counter += 1;
+        $.get(`${hopon.url}/airport.php?departure=${departure}&destination=${destination}`, callback);
     }
-    return result;
-}
-
-function getLanguage() {
-    const url = window.location.href;
-
-    // Split the URL by "/"
-    const parts = url.split('/');
-
-    // Iterate over the parts to find the language code
-    let languageCode = null;
-    for (let i = 0; i < parts.length; i++) {
-        // Check if the part contains a language code
-        if (/^[a-zA-Z]{2}$/.test(parts[i])) { // Assuming language code is 2 characters long
-            languageCode = parts[i];
-            break;
+    function makeid(length) {
+        let result = '';
+        const characters = 'abcdefghijklmnopqrstuvwxyz';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
         }
+        return result;
     }
 
-    if (languageCode === null) {
-        return "en";
-    } else {
-        return languageCode; // Output: fr
+
+    function redirectifEmpty() {
+        if (document.referrer == '') return window.location.href = hopon.url;
+        if (document.referrer.indexOf('jets-database/') !== -1) $('#jet').css('display', '')
     }
-}
-
-function redirectifEmpty() {
-    if (document.referrer == '') return window.location.href = hopon.url;
-    if (document.referrer.indexOf('jets-database/') !== -1) $('#jet').css('display', '')
-}
-function loadCustomer(){
-    setTimeout(() => {
-        const detail_customer = JSON.parse(localStorage.getItem('detail_customer'));
-        console.log('Ini load customer!', detail_customer);
-        document.querySelector('#name').value = detail_customer?.name ?? '';
-        document.querySelector('#lastname').value = detail_customer?.lastname ?? '';
-        document.querySelector('#email').value = detail_customer?.email ?? '';
-        document.querySelector('#telephone').value = detail_customer?.telephone ?? '';
-        document.querySelector('#additional').value = detail_customer?.additional ?? '';
-    }, 1000);
-}
-window.onload = () => {
-    redirectifEmpty();
-
-    function removeCurrentForm(){
-        $('#form-field-from').remove();
-        $('#form-field-to').remove();
-        $('#form-field-date').remove();
-        $('#form-field-time').remove();
-        $('#form-field-passengers').remove();
+    function loadCustomer(){
+        setTimeout(() => {
+            const detail_customer = JSON.parse(localStorage.getItem('detail_customer'));
+            console.log('Ini load customer!', detail_customer);
+            document.querySelector('#name').value = detail_customer?.name ?? '';
+            document.querySelector('#lastname').value = detail_customer?.lastname ?? '';
+            document.querySelector('#email').value = detail_customer?.email ?? '';
+            document.querySelector('#telephone').value = detail_customer?.telephone ?? '';
+            document.querySelector('#additional').value = detail_customer?.additional ?? '';
+        }, 1000);
     }
-    function addArrayForm(index,fromValue, toValue, dateValue, timeValue,passengersValue){   
-        $('div.elementor-element.elementor-element-4fcad03.elementor-widget__width-inherit.elementor-button-align-stretch.elementor-widget.elementor-widget-form > div > form').last().append(`
-            <div class="form_flight">
-                <input type="hidden" name="from[${index}]" value="${fromValue}">
-                <input type="hidden" name="to[${index}]" value="${toValue}">
-                <input type="hidden" name="date[${index}]" value="${dateValue}">
-                <input type="hidden" name="time[${index}]" value="${timeValue}">
-                <input type="hidden" name="passengers[${index}]" value="${passengersValue}">
-            </div>
-        `);
-    }
-    removeCurrentForm();
+    window.onload = () => {
+        redirectifEmpty();
 
-    var items = JSON.parse(localStorage.getItem('flights')) ?? null;
-    var flight_type = localStorage.getItem('flight_type');
-    if (items == null) return;
-    items.forEach((item, index) => {
-        const departure = item.departure_id;
-        const destination = item.destination_id;
-        const date = item.date;
-        const time = item.time;
-        const jet_size = item.jet_size ?? "optional";
-        const passengers = item.passengers;
-        fetchData(departure, destination, (data) => {
-            data = JSON.parse(data);
-            const randomId = makeid(5);
-            const datadeparture = data.departure.text;
-            const datadestination = data.destination.text
-            const jetElement = (item.jet_name ? `<tr>
-        <td valign="top" width="30%">Jet Name</td>
-        <td style="font-weight:bold">: <span id="departure">${item.jet_name}</span></td>
-    </tr>` : "");
-            const html= `<tr class="flight-element" data-id="${randomId}">
-        <td valign="top" width="30%" colspan='2' align="center"><i class="fas fa-fighter-jet"></i>
-Your Flight — ${flight_type}</td>
-    </tr>
-    ${jetElement}
-    <tr>
-        <td valign="top" width="30%">From</td>
-        <td style="font-weight:bold">: <span id="departure">${datadeparture}</span></td>
-    </tr>
-    <tr>
-        <td valign="top" width="30%">To</td>
-        <td style="font-weight:bold">: <span id="destination">${datadestination}</span></td>
-    </tr>
-    <tr>
-        <td valign="top" width="30%">Jet Size</td>
-        <td style="font-weight:bold">: <span id="date">${jet_size.toLowerCase() == "optional" ? "<i>(" + jet_size +")</i>" : jet_size}</span></td>
-    </tr>
-    <tr>
-        <td valign="top" width="30%">Date</td>
-        <td style="font-weight:bold">: <span id="date">${date}</span></td>
-    </tr>
-    <tr>
-        <td valign="top" width="30%">Time</td>
-        <td style="font-weight:bold">: <span id="time">${time}</span></td>
-    </tr>
-    <tr>
-        <td valign="top" width="30%">Passengers</td>
-        <td style="font-weight:bold">: <span id="passengers"> ${passengers}</span></td>
-    </tr>`;
-            // $('#flights').hide().show('normal').last().append(html);
+        function removeCurrentForm(){
+            $('#form-field-from').remove();
+            $('#form-field-to').remove();
+            $('#form-field-date').remove();
+            $('#form-field-time').remove();
+            $('#form-field-passengers').remove();
+        }
+        function addArrayForm(index,fromValue, toValue, dateValue, timeValue,passengersValue){   
+            $('div.elementor-element.elementor-element-4fcad03.elementor-widget__width-inherit.elementor-button-align-stretch.elementor-widget.elementor-widget-form > div > form').last().append(`
+                <div class="form_flight">
+                    <input type="hidden" name="from[${index}]" value="${fromValue}">
+                    <input type="hidden" name="to[${index}]" value="${toValue}">
+                    <input type="hidden" name="date[${index}]" value="${dateValue}">
+                    <input type="hidden" name="time[${index}]" value="${timeValue}">
+                    <input type="hidden" name="passengers[${index}]" value="${passengersValue}">
+                </div>
+            `);
+        }
+        removeCurrentForm();
 
-            $(html).appendTo($('#flights'));
-            // console.log(html);
-            addArrayForm(index,datadeparture, datadestination, date, time, passengers);
-            items[index] = {
-                ...items[index],
-                'departure': data.departure.text,
-                'departure_country': data.departure.country,
-                'departure_flag': data.departure.iso_country,
-                'destination': data.destination.text,
-                'destination_country': data.destination.country,
-                'destination_flag': data.destination.iso_country,
-            };
+        var items = JSON.parse(localStorage.getItem('flights')) ?? null;
+        var flight_type = localStorage.getItem('flight_type');
+        if (items == null) return;
+        items.forEach((item, index) => {
+            const departure = item.departure_id;
+            const destination = item.destination_id;
+            const date = item.date;
+            const time = item.time;
+            const jet_size = item.jet_size ?? "optional";
+            const passengers = item.passengers;
+            fetchData(departure, destination, (data) => {
+                data = JSON.parse(data);
+                const randomId = makeid(5);
+                const datadeparture = data.departure.text;
+                const datadestination = data.destination.text
+				const jetElement = (item.jet_name ? `<tr>
+            <td valign="top" width="30%">Jet Name</td>
+            <td style="font-weight:bold">: <span id="departure">${item.jet_name}</span></td>
+        </tr>` : "");
+                const html= `<tr class="flight-element" data-id="${randomId}">
+            <td valign="top" width="30%" colspan='2' align="center"><i class="fas fa-fighter-jet"></i>
+    Your Flight — ${flight_type}</td>
+        </tr>
+        ${jetElement}
+		<tr>
+            <td valign="top" width="30%">From</td>
+            <td style="font-weight:bold">: <span id="departure">${datadeparture}</span></td>
+        </tr>
+        <tr>
+            <td valign="top" width="30%">To</td>
+            <td style="font-weight:bold">: <span id="destination">${datadestination}</span></td>
+        </tr>
+        <tr>
+            <td valign="top" width="30%">Jet Size</td>
+            <td style="font-weight:bold">: <span id="date">${jet_size.toLowerCase() == "optional" ? "<i>(" + jet_size +")</i>" : jet_size}</span></td>
+        </tr>
+        <tr>
+            <td valign="top" width="30%">Date</td>
+            <td style="font-weight:bold">: <span id="date">${date}</span></td>
+        </tr>
+        <tr>
+            <td valign="top" width="30%">Time</td>
+            <td style="font-weight:bold">: <span id="time">${time}</span></td>
+        </tr>
+        <tr>
+            <td valign="top" width="30%">Passengers</td>
+            <td style="font-weight:bold">: <span id="passengers"> ${passengers}</span></td>
+        </tr>`;
+                // $('#flights').hide().show('normal').last().append(html);
 
-            localStorage.setItem('flights', JSON.stringify(items));
+                $(html).appendTo($('#flights'));
+                // console.log(html);
+                addArrayForm(index,datadeparture, datadestination, date, time, passengers);
+                items[index] = {
+                    ...items[index],
+                    'departure': data.departure.text,
+                    'departure_country': data.departure.country,
+                    'departure_flag': data.departure.iso_country,
+                    'destination': data.destination.text,
+                    'destination_country': data.destination.country,
+                    'destination_flag': data.destination.iso_country,
+                };
+
+                localStorage.setItem('flights', JSON.stringify(items));
+            });
         });
-    });
-    
-    loadCustomer();
-} 
+        
+        loadCustomer();
+    }  
 
 function saveToLocalStorage() {
     const name = document.querySelector('#name').value;
@@ -256,13 +234,14 @@ function submitForm(btn) {
                 url: "https://hopon-jet.com/wp-admin/admin-ajax.php",
                 type: 'POST',
                 data: {
-                    post_id: 8,
-                    form_id: "4fcad03",
+                    post_id: $('input[name="post_id"]').val(),
+                    form_id: $('input[name="form_id"]').val(),
                     referer_title: "Contact Information Page",
-                    query_id: 8,
+                    query_id: $('input[name="post_id"]').val(),
                     action: 'elementor_pro_forms_send_form',
                     'g-recaptcha-response': token, // Include reCAPTCHA token
                     form_fields: {
+                        country : document.querySelector('#form-field-country').value ?? 1, //3 is france, 4 is arabic
                         name: $('#form-field-name').val(),
                         lastname: $('#form-field-lastname').val(),
                         email: $('#form-field-email').val(),
