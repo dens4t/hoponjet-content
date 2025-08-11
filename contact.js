@@ -13,6 +13,28 @@ function makeid(length) {
     return result;
 }
 
+function getLanguage() {
+    const url = window.location.href;
+
+    // Split the URL by "/"
+    const parts = url.split('/');
+
+    // Iterate over the parts to find the language code
+    let languageCode = null;
+    for (let i = 0; i < parts.length; i++) {
+        // Check if the part contains a language code
+        if (/^[a-zA-Z]{2}$/.test(parts[i])) { // Assuming language code is 2 characters long
+            languageCode = parts[i];
+            break;
+        }
+    }
+
+    if (languageCode === null) {
+        return "en";
+    } else {
+        return languageCode; // Output: fr
+    }
+}
 
 function redirectifEmpty() {
     if (document.referrer == '') return window.location.href = hopon.url;
